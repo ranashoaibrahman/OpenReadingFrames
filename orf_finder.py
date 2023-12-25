@@ -1,17 +1,62 @@
 # Don't change the Libraries
 import os
 import sys
+import re
 
-#Your Code Here
 class ORFFinder:
-    def __init__
-    # Correctly initialize class
+    def read_fasta_file(self, filepath):
+        sequences = {}
+        current_header = None
+        with open(filepath, 'r') as file:
+            for line in file:
+                line = line.strip()
+                if line.startswith('>'):
+                    if current_header:
+                        sequences[current_header] = ''.join(current_sequence)
+                    current_header = line[1:]
+                    current_sequence = []
+                else:
+                    current_sequence.append(line)
+        if current_header:
+            sequences[current_header] = ''.join(current_sequence)
+        return sequences
 
-    def read_fasta_file   # Implement code to read fasta file and return sequences
+    def find_longest_orf(self, sequence):
+        start_codon = 'ATG'
+        stop_codons = ['TAA', 'TAG', 'TGA']
+        orfs = re.findall(f'{start_codon}(.*?)(?:{"|".join(stop_codons)})', sequence, flags=re.DOTALL)
 
-    def find_longest_orf  # Implement code to find the longest DNA ORF in a given sequence
+        longest_orf = ''
+        for orf in orfs:
+            if len(orf) > len(longest_orf):
+                longest_orf = orf
 
-    def process_sequences #Implement code to process all sequences and find the overall longest DNA ORF
-        pass
+        return longest_orf
 
-def main # initialize to let various arguments pass
+    def process_sequences(self, sequences):
+        overall_longest_orf = ''
+        overall_longest_header = None
+        for header, sequence in sequences.items():
+            longest_orf = self.find_longest_orf(sequence)
+            if longest_orf and len(longest_orf) > len(overall_longest_orf):
+                overall_longest_orf = longest_orf
+                overall_longest_header = header
+        return overall_longest_header, overall_longest_orf
+def main():
+    if len(sys.argv) < 2:
+        print("python orf_finder.py input_file.fasta")
+        sys.exit(1)
+
+    file_path = sys.argv[1]
+
+    orf_finder = ORFFinder()
+    sequences = orf_finder.read_fasta_file(file_path)
+    longest_header, longest_sequence = orf_finder.process_sequences(sequences)
+
+    print(f"Longest DNA sequence found:")
+    print(f"Header: {longest_header}")
+    print(f"Sequence: {sequences[longest_header]}")
+    print(f"Length of the Sequence: {len(sequences[longest_header])}")
+
+if __name__ == "__main__":
+    main()
